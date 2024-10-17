@@ -2,12 +2,16 @@ using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Options;
 
-public class EmailService(IOptions<SmtpSettings> smtpSettings) : IEmailService
+public class EmailService : IEmailService
 {
+    private const string TemplateDirectory = "Templates";
 
-        private const string TemplateDirectory = "Templates";
+    private readonly SmtpSettings _smtpSettings;
 
-   private readonly SmtpSettings _smtpSettings = smtpSettings.Value;
+    public EmailService(IOptions<SmtpSettings> smtpSettings)
+    {
+        _smtpSettings = smtpSettings.Value;
+    }
 
     public void SendEmailNormal(string toEmail, string subject, string body)
     {
@@ -29,10 +33,10 @@ public class EmailService(IOptions<SmtpSettings> smtpSettings) : IEmailService
         }
     }
 
-     private string GetEmailBody(string templateName, Dictionary<string, string> placeholders)
+    private string GetEmailBody(string templateName, Dictionary<string, string> placeholders)
     {
         var filePath = Path.Combine(AppContext.BaseDirectory, TemplateDirectory, $"{templateName}.html");
-        
+
         if (!File.Exists(filePath))
         {
             throw new FileNotFoundException($"Template '{templateName}' not found at '{filePath}'.");
@@ -48,7 +52,7 @@ public class EmailService(IOptions<SmtpSettings> smtpSettings) : IEmailService
         return templateContent;
     }
 
-     public void SendEmailWithTemplate(string toEmail, string subject, string templateName, Dictionary<string, string> placeholders)
+    public void SendEmailWithTemplate(string toEmail, string subject, string templateName, Dictionary<string, string> placeholders)
     {
         var body = GetEmailBody(templateName, placeholders);
 
